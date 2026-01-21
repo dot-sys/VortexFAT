@@ -10,6 +10,10 @@
 </p>
 
 ---
+<p align="center">
+  <img src="https://i.imgur.com/R8jXQjv.png" alt="Vortex Logo" height="600">
+</p>
+
 
 ### Overview
 
