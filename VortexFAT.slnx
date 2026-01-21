@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Drives/Drives.csproj" Id="e58f32d2-ea1e-44b6-b66d-f8dbb10e0a61" />
+  <Project Path="Vortex.UI/Vortex.UI.csproj" Id="86a2c2b4-61c3-46d7-b24e-f941e33b11bc">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="Debug|x86" Project="x86" />
+  </Project>
+</Solution>
