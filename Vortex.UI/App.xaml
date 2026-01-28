@@ -9,7 +9,7 @@
                 <!-- Language Resource Dictionary - English as default -->
                 <ResourceDictionary Source="Resources/Strings.en-US.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            
+
             <!-- Global Font Style -->
             <Style TargetType="{x:Type Control}" x:Key="BaseControlStyle">
                 <Setter Property="FontFamily" Value="Consolas"/>
@@ -632,7 +632,7 @@
 
             <!-- Built-in Converters -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            
+
             <!-- Custom Converters -->
             <converters:BooleanOrToVisibilityConverter x:Key="BooleanOrToVisibilityConverter"/>
             <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>

@@ -40,34 +40,34 @@ namespace Vortex.UI.Converters
             if (!unmarkUnsigned && IsUnsignedSignature(signature))
                 return DarkGoldenrodBrush;
 
-                return WhiteBrush;
-            }
-
-            // Not supported for this converter
-            public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-            {
-                throw new NotImplementedException("RowForegroundConverter does not support two-way binding");
-            }
-
-            // Checks if status indicates deleted file
-            private static bool IsDeletedStatus(string status)
-            {
-                return !string.IsNullOrEmpty(status) &&
-                       (status.Equals("Deleted", StringComparison.OrdinalIgnoreCase) ||
-                        status.Equals("Replaced", StringComparison.OrdinalIgnoreCase));
-            }
-
-                    // Checks if status indicates present file
-                    private static bool IsPresentStatus(string status)
-                    {
-                        return status.Equals("Present", StringComparison.OrdinalIgnoreCase);
-                    }
-
-                    // Checks if signature indicates unsigned file
-                    private static bool IsUnsignedSignature(string signature)
-                {
-                    return !string.IsNullOrEmpty(signature) &&
-                           signature.Equals("Unsigned", StringComparison.OrdinalIgnoreCase);
-                }
-            }
+            return WhiteBrush;
         }
+
+        // Not supported for this converter
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException("RowForegroundConverter does not support two-way binding");
+        }
+
+        // Checks if status indicates deleted file
+        private static bool IsDeletedStatus(string status)
+        {
+            return !string.IsNullOrEmpty(status) &&
+                   (status.Equals("Deleted", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("Replaced", StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Checks if status indicates present file
+        private static bool IsPresentStatus(string status)
+        {
+            return status.Equals("Present", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Checks if signature indicates unsigned file
+        private static bool IsUnsignedSignature(string signature)
+        {
+            return !string.IsNullOrEmpty(signature) &&
+                   signature.Equals("Unsigned", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+}

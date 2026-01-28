@@ -42,7 +42,7 @@ namespace Drives.Util
 
                 string drivePath = $"\\\\.\\{driveLetter.TrimEnd('\\')}";
 
-                using (var driveStream = new FileStream(drivePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.None))
+                using (var driveStream = new FileStream(drivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: false))
                 {
                     byte[] fileData;
                     long clusterSize;

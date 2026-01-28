@@ -35,70 +35,70 @@ namespace Vortex.UI.ViewModels
                     _isDataLoaded = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(CanNavigateToDashboard));
-                        }
-                    }
                 }
+            }
+        }
 
-                // Checks if navigation to dashboard allowed
-                public bool CanNavigateToDashboard => IsDataLoaded;
+        // Checks if navigation to dashboard allowed
+        public bool CanNavigateToDashboard => IsDataLoaded;
 
-                // Initializes viewmodel and command bindings
-                public MainWindowViewModel()
-                {
-                    NavigateToDashboardCommand = new RelayCommand(NavigateToDashboard, () => CanNavigateToDashboard);
-                    _frameworkViewModels = new List<FrameworkViewModel>();
-                }
+        // Initializes viewmodel and command bindings
+        public MainWindowViewModel()
+        {
+            NavigateToDashboardCommand = new RelayCommand(NavigateToDashboard, () => CanNavigateToDashboard);
+            _frameworkViewModels = new List<FrameworkViewModel>();
+        }
 
-                // Dashboard navigation command instance
-                public ICommand NavigateToDashboardCommand { get; }
+        // Dashboard navigation command instance
+        public ICommand NavigateToDashboardCommand { get; }
 
-                // Gets dashboard viewmodel reference
-                public DashboardViewModel DashboardViewModel => _dashboardViewModel;
+        // Gets dashboard viewmodel reference
+        public DashboardViewModel DashboardViewModel => _dashboardViewModel;
 
-                // Gets readonly framework viewmodel list
-                public IReadOnlyList<FrameworkViewModel> FrameworkViewModels => _frameworkViewModels.AsReadOnly();
+        // Gets readonly framework viewmodel list
+        public IReadOnlyList<FrameworkViewModel> FrameworkViewModels => _frameworkViewModels.AsReadOnly();
 
-                // Adds framework viewmodel to collection
-                public void RegisterFrameworkViewModel(FrameworkViewModel viewModel)
+        // Adds framework viewmodel to collection
+        public void RegisterFrameworkViewModel(FrameworkViewModel viewModel)
         {
             if (viewModel != null && !_frameworkViewModels.Contains(viewModel))
             {
                 _frameworkViewModels.Add(viewModel);
-                }
             }
+        }
 
-            // Finds framework viewmodel by name
-            public FrameworkViewModel GetFrameworkViewModel(string name)
+        // Finds framework viewmodel by name
+        public FrameworkViewModel GetFrameworkViewModel(string name)
+        {
+            return _frameworkViewModels.FirstOrDefault(vm => vm.Name == name);
+        }
+
+        // Removes all registered framework viewmodels
+        public void ClearFrameworkViewModels()
+        {
+            _frameworkViewModels.Clear();
+        }
+
+        // Assigns navigation frame reference
+        public void SetFrame(Frame frame)
+        {
+            _mainFrame = frame;
+            NavigateToWelcome();
+        }
+
+        // Navigates to welcome page
+        public void NavigateToWelcome()
+        {
+            if (_mainFrame != null)
             {
-                return _frameworkViewModels.FirstOrDefault(vm => vm.Name == name);
+                var welcomeView = new WelcomeView { DataContext = this };
+                _mainFrame.Navigate(welcomeView);
+                _currentView = "Welcome";
             }
+        }
 
-            // Removes all registered framework viewmodels
-            public void ClearFrameworkViewModels()
-            {
-                _frameworkViewModels.Clear();
-            }
-
-            // Assigns navigation frame reference
-            public void SetFrame(Frame frame)
-            {
-                _mainFrame = frame;
-                NavigateToWelcome();
-            }
-
-            // Navigates to welcome page
-            public void NavigateToWelcome()
-            {
-                if (_mainFrame != null)
-                {
-                    var welcomeView = new WelcomeView { DataContext = this };
-                    _mainFrame.Navigate(welcomeView);
-                    _currentView = "Welcome";
-                }
-            }
-
-            // Navigates to dashboard page
-            public void NavigateToDashboard()
+        // Navigates to dashboard page
+        public void NavigateToDashboard()
         {
             if (_mainFrame != null)
             {
@@ -111,38 +111,38 @@ namespace Vortex.UI.ViewModels
                 var dashboardView = new DashboardView { DataContext = _dashboardViewModel };
                 _mainFrame.Navigate(dashboardView);
                 _currentView = "Dashboard";
-                }
             }
+        }
 
-            // Navigates to FAT analyzer with file data
-            public void NavigateToFATAnalyzer(System.Collections.Generic.List<Drives.Models.FileEntry> files, string drivePath, string partitionName = null, string volumeLabel = null)
+        // Navigates to FAT analyzer with file data
+        public void NavigateToFATAnalyzer(System.Collections.Generic.List<Drives.Models.FileEntry> files, string drivePath, string partitionName = null, string volumeLabel = null)
+        {
+            if (_mainFrame != null)
             {
-                if (_mainFrame != null)
-                {
-                    var fatAnalyzerView = new FATAnalyzerView();
-                    fatAnalyzerView.LoadFiles(files, drivePath, partitionName, volumeLabel);
-                    _mainFrame.Navigate(fatAnalyzerView);
-                    _currentView = "FATAnalyzer";
-                }
+                var fatAnalyzerView = new FATAnalyzerView();
+                fatAnalyzerView.LoadFiles(files, drivePath, partitionName, volumeLabel);
+                _mainFrame.Navigate(fatAnalyzerView);
+                _currentView = "FATAnalyzer";
             }
+        }
 
-            // Creates new dashboard viewmodel instance
-            private void InitializeDashboardViewModel()
+        // Creates new dashboard viewmodel instance
+        private void InitializeDashboardViewModel()
+        {
+            if (_dashboardViewModel == null)
             {
-                if (_dashboardViewModel == null)
-                {
-                    _dashboardViewModel = new DashboardViewModel();
-                }
+                _dashboardViewModel = new DashboardViewModel();
             }
+        }
 
-            // Initializes all framework trace operations
-            public virtual void StartAllTraces()
-            {
-                InitializeDashboardViewModel();
-            }
+        // Initializes all framework trace operations
+        public virtual void StartAllTraces()
+        {
+            InitializeDashboardViewModel();
+        }
 
-            // Clears data and reloads welcome view
-            public void RefreshCurrentView()
+        // Clears data and reloads welcome view
+        public void RefreshCurrentView()
         {
             IsDataLoaded = false;
             _dashboardViewModel = null;
@@ -152,61 +152,61 @@ namespace Vortex.UI.ViewModels
             GC.WaitForPendingFinalizers();
             GC.Collect();
 
-                NavigateToWelcome();
-            }
+            NavigateToWelcome();
+        }
 
-            // Reloads current active view
-            public void ReloadCurrentView()
-            {
-                switch (_currentView)
-                {
-                    case "Welcome":
-                        NavigateToWelcome();
-                        break;
-                    case "Dashboard":
-                        NavigateToDashboard();
-                        break;
-                    default:
-                        NavigateToWelcome();
-                        break;
-                }
-            }
-
-            // Property change notification event
-            public event PropertyChangedEventHandler PropertyChanged;
-
-            // Raises property changed event
-            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        // Reloads current active view
+        public void ReloadCurrentView()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-            }
-
-            // Simple ICommand implementation for actions
-            public class RelayCommand : ICommand
+            switch (_currentView)
             {
-                // Action to execute
-                private readonly Action _execute;
-                // Predicate for execution availability
-                private readonly Func<bool> _canExecute;
-
-                // Initializes command with action and predicate
-                public RelayCommand(Action execute, Func<bool> canExecute = null)
-                {
-                    _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-                    _canExecute = canExecute;
-                }
-
-                // Execution state change notification event
-                public event EventHandler CanExecuteChanged
-                {
-                    add { CommandManager.RequerySuggested += value; }
-                    remove { CommandManager.RequerySuggested -= value; }
-                }
-
-                // Determines if command can execute
-                public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
-                // Executes command action
-                public void Execute(object parameter) => _execute();
+                case "Welcome":
+                    NavigateToWelcome();
+                    break;
+                case "Dashboard":
+                    NavigateToDashboard();
+                    break;
+                default:
+                    NavigateToWelcome();
+                    break;
             }
         }
+
+        // Property change notification event
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // Raises property changed event
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    // Simple ICommand implementation for actions
+    public class RelayCommand : ICommand
+    {
+        // Action to execute
+        private readonly Action _execute;
+        // Predicate for execution availability
+        private readonly Func<bool> _canExecute;
+
+        // Initializes command with action and predicate
+        public RelayCommand(Action execute, Func<bool> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        // Execution state change notification event
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        // Determines if command can execute
+        public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
+        // Executes command action
+        public void Execute(object parameter) => _execute();
+    }
+}

@@ -4,57 +4,57 @@
   Title="Welcome"
   Background="Transparent">
 
-<Page.Resources>
-    <!-- Start Trace Button Style -->
-    <Style x:Key="StartTraceButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="#000000"/>
-        <Setter Property="Foreground" Value="White"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush" Value="White"/>
-        <Setter Property="FontWeight" Value="Normal"/>
-        <Setter Property="FontFamily" Value="Consolas"/>
-        <Setter Property="FontSize" Value="16"/>
-        <Setter Property="Width" Value="150"/>
-        <Setter Property="Height" Value="40"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" 
+    <Page.Resources>
+        <!-- Start Trace Button Style -->
+        <Style x:Key="StartTraceButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#000000"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="5"
                             Width="{TemplateBinding Width}" 
                             Height="{TemplateBinding Height}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#1A1A1A"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="#808080"/>
-                            <Setter Property="BorderBrush" Value="#808080"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    
-    <!-- ComboBox Style for Drive Selection -->
-    <Style x:Key="DriveComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="Background" Value="#000000"/>
-        <Setter Property="Foreground" Value="White"/>
-        <Setter Property="BorderBrush" Value="White"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="FontFamily" Value="Consolas"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Padding" Value="10,8"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBox">
-                    <Grid>
-                        <ToggleButton x:Name="toggleButton"
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1A1A1A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#808080"/>
+                                <Setter Property="BorderBrush" Value="#808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ComboBox Style for Drive Selection -->
+        <Style x:Key="DriveComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="#000000"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="toggleButton"
                                       Grid.Column="2"
                                       Focusable="false"
                                       IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
@@ -62,38 +62,38 @@
                                       Background="{TemplateBinding Background}"
                                       BorderBrush="{TemplateBinding BorderBrush}"
                                       BorderThickness="{TemplateBinding BorderThickness}">
-                            <ToggleButton.Template>
-                                <ControlTemplate TargetType="ToggleButton">
-                                    <Border Background="{TemplateBinding Background}"
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
                                             BorderBrush="{TemplateBinding BorderBrush}"
                                             BorderThickness="{TemplateBinding BorderThickness}"
                                             CornerRadius="5">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <ContentPresenter Grid.Column="0" 
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0" 
                                                               Content="{TemplateBinding Content}"
                                                               Margin="10,8"/>
-                                            <Path Grid.Column="1" 
+                                                <Path Grid.Column="1" 
                                                   x:Name="Arrow"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center"
                                                   Data="M 0 0 L 4 4 L 8 0 Z"
                                                   Fill="White"
                                                   Margin="0,0,10,0"/>
-                                        </Grid>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#1A1A1A"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </ToggleButton.Template>
-                        </ToggleButton>
-                        <ContentPresenter x:Name="ContentSite"
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#1A1A1A"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite"
                                           IsHitTestVisible="False"
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
@@ -101,91 +101,91 @@
                                           Margin="10,8"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Left"/>
-                        <Popup x:Name="Popup"
+                            <Popup x:Name="Popup"
                                Placement="Bottom"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True"
                                Focusable="False"
                                PopupAnimation="Slide">
-                            <Border x:Name="DropDownBorder"
+                                <Border x:Name="DropDownBorder"
                                     Background="#000000"
                                     BorderBrush="White"
                                     BorderThickness="1"
                                     CornerRadius="5"
                                     MinWidth="{TemplateBinding ActualWidth}"
                                     MaxHeight="200">
-                                <ScrollViewer>
-                                    <StackPanel IsItemsHost="True"/>
-                                </ScrollViewer>
-                            </Border>
-                        </Popup>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    
-    <!-- ComboBoxItem Style -->
-    <Style TargetType="ComboBoxItem">
-        <Setter Property="Background" Value="#000000"/>
-        <Setter Property="Foreground" Value="White"/>
-        <Setter Property="FontFamily" Value="Consolas"/>
-        <Setter Property="Padding" Value="10,8"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBoxItem">
-                    <Border Background="{TemplateBinding Background}"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#1A1A1A"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#2A2A2A"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-</Page.Resources>
+                                    <ScrollViewer>
+                                        <StackPanel IsItemsHost="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-<Border Background="#000000" CornerRadius="0,0,8,8">
-    <Grid x:Name="MainGrid">
-        <StackPanel HorizontalAlignment="Center" 
+        <!-- ComboBoxItem Style -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#000000"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1A1A1A"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2A2A2A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Border Background="#000000" CornerRadius="0,0,8,8">
+        <Grid x:Name="MainGrid">
+            <StackPanel HorizontalAlignment="Center" 
                     VerticalAlignment="Center">
-            <!-- Logo -->
-            <Image x:Name="WelcomeLogoImage"
+                <!-- Logo -->
+                <Image x:Name="WelcomeLogoImage"
                    Source="/Assets/VortexWhiteLogo.png" 
                    Width="200" 
                    Height="200"
                    Margin="0,0,0,20"
                    HorizontalAlignment="Center"
                    RenderTransformOrigin="0.5,0.5">
-                <Image.RenderTransform>
-                    <RotateTransform x:Name="WelcomeLogoRotation" Angle="0"/>
-                </Image.RenderTransform>
-            </Image>
-            
-            <!-- Vortex Viewer Title -->
-            <TextBlock Text="{DynamicResource VortexViewer}"
+                    <Image.RenderTransform>
+                        <RotateTransform x:Name="WelcomeLogoRotation" Angle="0"/>
+                    </Image.RenderTransform>
+                </Image>
+
+                <!-- Vortex Viewer Title -->
+                <TextBlock Text="{DynamicResource VortexViewer}"
                        Foreground="White"
                        FontFamily="Consolas"
                        FontSize="24"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,20"/>
-            
-            <!-- Drive Selection Dropdown -->
-            <TextBlock Text="{DynamicResource SelectFATDrive}"
+
+                <!-- Drive Selection Dropdown -->
+                <TextBlock Text="{DynamicResource SelectFATDrive}"
                        Foreground="White"
                        FontFamily="Consolas"
                        FontSize="14"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,10"/>
-            
-            <ComboBox x:Name="DriveComboBox"
+
+                <ComboBox x:Name="DriveComboBox"
                       Style="{StaticResource DriveComboBoxStyle}"
                       Width="350"
                       Height="40"
@@ -193,38 +193,38 @@
                       Margin="0,0,0,20"
                       DisplayMemberPath="DisplayName"
                       SelectionChanged="DriveComboBox_SelectionChanged"/>
-            
-            <!-- Start Trace Button -->
-            <Button x:Name="StartTraceButton"
+
+                <!-- Start Trace Button -->
+                <Button x:Name="StartTraceButton"
                     Content="{DynamicResource StartAnalysis}" 
                     Style="{StaticResource StartTraceButtonStyle}"
                     Click="StartTrace_Click"
                     HorizontalAlignment="Center"
                     IsEnabled="False"/>
-            
-            <!-- Status Text with animated dots - Fixed height container to prevent layout shift -->
-            <Grid Height="30" 
+
+                <!-- Status Text with animated dots - Fixed height container to prevent layout shift -->
+                <Grid Height="30" 
                   Margin="0,20,0,0"
                   HorizontalAlignment="Center">
-                <StackPanel Orientation="Horizontal"
+                    <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             x:Name="StatusPanel"
                             Visibility="Collapsed">
-                    <TextBlock x:Name="StatusText"
+                        <TextBlock x:Name="StatusText"
                                Text=""
                                Foreground="White"
                                FontFamily="Consolas"
                                FontSize="14"/>
-                    <TextBlock x:Name="DotsText"
+                        <TextBlock x:Name="DotsText"
                                Text=""
                                Foreground="White"
                                FontFamily="Consolas"
                                FontSize="14"
                                Margin="2,0,0,0"/>
-                </StackPanel>
-            </Grid>
-        </StackPanel>
-    </Grid>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Grid>
     </Border>
 </Page>

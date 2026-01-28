@@ -15,9 +15,7 @@ namespace Vortex.UI.Views
         {
             var menuItem = sender as MenuItem;
             var contextMenu = menuItem?.Parent as ContextMenu;
-            var dataGrid = contextMenu?.PlacementTarget as DataGrid;
-
-            if (dataGrid != null)
+            if (contextMenu?.PlacementTarget is DataGrid dataGrid)
             {
                 DataGridContextMenuHelper.CopyValue(dataGrid);
             }
@@ -27,9 +25,7 @@ namespace Vortex.UI.Views
         {
             var menuItem = sender as MenuItem;
             var contextMenu = menuItem?.Parent as ContextMenu;
-            var dataGrid = contextMenu?.PlacementTarget as DataGrid;
-
-            if (dataGrid != null)
+            if (contextMenu?.PlacementTarget is DataGrid dataGrid)
             {
                 DataGridContextMenuHelper.CopyRow(dataGrid);
             }

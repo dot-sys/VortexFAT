@@ -101,11 +101,11 @@ namespace Vortex.UI.Views
                         treeViewItem.BringIntoView();
                     }
                 }
-                        catch
-                        {
-                        }
-                    }, System.Windows.Threading.DispatcherPriority.Loaded);
+                catch
+                {
                 }
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
+        }
 
         private TreeViewItem FindTreeViewItem(ItemsControl container, object item)
         {
@@ -142,11 +142,11 @@ namespace Vortex.UI.Views
 
                 if (nodePath.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
-                        return node;
-                    }
+                    return node;
+                }
 
-                    var found = FindNodeByPath(node.Children, path);
-                    if (found != null)
+                var found = FindNodeByPath(node.Children, path);
+                if (found != null)
                 {
                     return found;
                 }
@@ -247,11 +247,11 @@ namespace Vortex.UI.Views
                     "Recovery Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
-                    return;
-                }
+                return;
+            }
 
-                var saveFileDialog = new SaveFileDialog
-                {
+            var saveFileDialog = new SaveFileDialog
+            {
                 FileName = selectedFile.DisplayName,
                 Title = "Select location to save recovered file",
                 Filter = "All Files (*.*)|*.*"
@@ -292,316 +292,316 @@ namespace Vortex.UI.Views
                 }
                 catch (System.Exception ex)
                 {
-                                MessageBox.Show(
-                                    $"Error recovering file:\n{ex.Message}",
-                                    "Recovery Error",
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
-                            }
-                        }
-                    }
+                    MessageBox.Show(
+                        $"Error recovering file:\n{ex.Message}",
+                        "Recovery Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+        }
 
-                    private async void RecoverAll_Click(object sender, RoutedEventArgs e)
+        private async void RecoverAll_Click(object sender, RoutedEventArgs e)
+        {
+            var deletedFiles = _viewModel.FilteredFiles.Where(IsDeletedFile).ToList();
+
+            if (deletedFiles.Count == 0)
+            {
+                MessageBox.Show(
+                    "No deleted files found in the current view.",
+                    "Recovery Information",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var folderDialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = $"Select a folder to recover {deletedFiles.Count} deleted file(s)",
+                ShowNewFolderButton = true
+            };
+
+            if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string outputFolder = folderDialog.SelectedPath;
+
+                _viewModel.IsLoadingOverlayVisible = true;
+                _viewModel.LoadingMessage = "Recovering";
+
+                var dotsTask = AnimateLoadingDots();
+
+                try
+                {
+                    var result = await Task.Run(() => RecoverFilesAsync(deletedFiles, outputFolder));
+
+                    _viewModel.IsLoadingOverlayVisible = false;
+
+                    string message = $"Recovery Complete!\n\n" +
+                                   $"Successfully recovered: {result.SuccessCount} file(s)\n" +
+                                   $"Failed: {result.FailedCount} file(s)\n\n" +
+                                   $"Files saved to:\n{outputFolder}\n\n" +
+                                   $"See RecoveryInfo.txt for details.";
+
+                    MessageBox.Show(
+                        message,
+                        "Recovery Complete",
+                        MessageBoxButton.OK,
+                        result.SuccessCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    _viewModel.IsLoadingOverlayVisible = false;
+                    MessageBox.Show(
+                        "Administrator privileges are required to recover files.\nPlease restart the application as administrator.",
+                        "Permission Denied",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    _viewModel.IsLoadingOverlayVisible = false;
+                    MessageBox.Show(
+                        $"Error during batch recovery:\n{ex.Message}",
+                        "Recovery Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private class RecoveryResult
+        {
+            public int SuccessCount { get; set; }
+            public int FailedCount { get; set; }
+            public List<string> RecoveredFiles { get; set; }
+            public List<string> FailedFiles { get; set; }
+        }
+
+        private RecoveryResult RecoverFilesAsync(List<FileEntry> deletedFiles, string outputFolder)
+        {
+            var result = new RecoveryResult
+            {
+                RecoveredFiles = new List<string>(),
+                FailedFiles = new List<string>()
+            };
+
+            // Use FATAnalyzer for file recovery
+            var analyzer = new FATAnalyzer(_viewModel.SelectedDrivePath);
+
+            foreach (var file in deletedFiles)
+            {
+                try
+                {
+                    if (file.IsDirectory || file.StartCluster < 2)
                     {
-                        var deletedFiles = _viewModel.FilteredFiles.Where(IsDeletedFile).ToList();
-
-                        if (deletedFiles.Count == 0)
-                        {
-                            MessageBox.Show(
-                                "No deleted files found in the current view.",
-                                "Recovery Information",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Information);
-                                return;
-                            }
-
-                            var folderDialog = new System.Windows.Forms.FolderBrowserDialog
-                            {
-                            Description = $"Select a folder to recover {deletedFiles.Count} deleted file(s)",
-                            ShowNewFolderButton = true
-                        };
-
-                        if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                        {
-                            string outputFolder = folderDialog.SelectedPath;
-
-                            _viewModel.IsLoadingOverlayVisible = true;
-                            _viewModel.LoadingMessage = "Recovering";
-
-                            var dotsTask = AnimateLoadingDots();
-
-                            try
-                            {
-                                var result = await Task.Run(() => RecoverFilesAsync(deletedFiles, outputFolder));
-
-                                _viewModel.IsLoadingOverlayVisible = false;
-
-                                string message = $"Recovery Complete!\n\n" +
-                                               $"Successfully recovered: {result.SuccessCount} file(s)\n" +
-                                               $"Failed: {result.FailedCount} file(s)\n\n" +
-                                               $"Files saved to:\n{outputFolder}\n\n" +
-                                               $"See RecoveryInfo.txt for details.";
-
-                                MessageBox.Show(
-                                    message,
-                                    "Recovery Complete",
-                                    MessageBoxButton.OK,
-                                    result.SuccessCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
-                            }
-                            catch (UnauthorizedAccessException)
-                            {
-                                _viewModel.IsLoadingOverlayVisible = false;
-                                MessageBox.Show(
-                                    "Administrator privileges are required to recover files.\nPlease restart the application as administrator.",
-                                    "Permission Denied",
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
-                            }
-                            catch (Exception ex)
-                            {
-                                _viewModel.IsLoadingOverlayVisible = false;
-                                MessageBox.Show(
-                                    $"Error during batch recovery:\n{ex.Message}",
-                                    "Recovery Error",
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
-                            }
-                        }
+                        System.Diagnostics.Debug.WriteLine($"Cannot recover {file.DisplayName}: Invalid file entry");
+                        result.FailedFiles.Add(file.FullPath);
+                        continue;
                     }
 
-                    private class RecoveryResult
+                    string fileName = file.DisplayName;
+
+                    char[] invalidChars = Path.GetInvalidFileNameChars();
+                    foreach (char c in invalidChars)
                     {
-                        public int SuccessCount { get; set; }
-                        public int FailedCount { get; set; }
-                        public List<string> RecoveredFiles { get; set; }
-                        public List<string> FailedFiles { get; set; }
+                        fileName = fileName.Replace(c, '_');
                     }
 
-                    private RecoveryResult RecoverFilesAsync(List<FileEntry> deletedFiles, string outputFolder)
+                    if (string.IsNullOrWhiteSpace(fileName))
                     {
-                        var result = new RecoveryResult
-                        {
-                            RecoveredFiles = new List<string>(),
-                            FailedFiles = new List<string>()
-                        };
-
-                        // Use FATAnalyzer for file recovery
-                        var analyzer = new FATAnalyzer(_viewModel.SelectedDrivePath);
-
-                        foreach (var file in deletedFiles)
-                        {
-                            try
-                            {
-                                if (file.IsDirectory || file.StartCluster < 2)
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"Cannot recover {file.DisplayName}: Invalid file entry");
-                                    result.FailedFiles.Add(file.FullPath);
-                                        continue;
-                                    }
-
-                                    string fileName = file.DisplayName;
-
-                                    char[] invalidChars = Path.GetInvalidFileNameChars();
-                                foreach (char c in invalidChars)
-                                {
-                                        fileName = fileName.Replace(c, '_');
-                                    }
-
-                                    if (string.IsNullOrWhiteSpace(fileName))
-                                    {
-                                    fileName = $"RecoveredFile_{file.StartCluster}.dat";
-                                }
-
-                                string outputPath = Path.Combine(outputFolder, fileName);
-
-                                int counter = 1;
-                                while (File.Exists(outputPath))
-                                {
-                                    string nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
-                                    string extension = Path.GetExtension(fileName);
-                                    outputPath = Path.Combine(outputFolder, $"{nameWithoutExt}_{counter}{extension}");
-                                    counter++;
-                                }
-
-                                System.Diagnostics.Debug.WriteLine($"Attempting to recover: {file.DisplayName} -> {outputPath}");
-                                System.Diagnostics.Debug.WriteLine($"  Size: {file.FileSize} bytes, Start Cluster: {file.StartCluster}");
-
-                                bool success = analyzer.RecoverFile(file, outputPath);
-
-                                System.Diagnostics.Debug.WriteLine($"  Recovery result: {success}");
-
-                                if (success && File.Exists(outputPath))
-                                {
-                                    var fileInfo = new FileInfo(outputPath);
-                                    if (fileInfo.Length > 0)
-                                    {
-                                        result.SuccessCount++;
-                                        result.RecoveredFiles.Add(file.FullPath);
-                                        System.Diagnostics.Debug.WriteLine($"  Successfully recovered {fileInfo.Length} bytes");
-                                    }
-                                    else
-                                    {
-                                        System.Diagnostics.Debug.WriteLine($"  File created but is empty");
-                                        result.FailedFiles.Add(file.FullPath);
-                                    }
-                                }
-                                else
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"  Recovery failed or file not created");
-                                    result.FailedFiles.Add(file.FullPath);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Error recovering {file.DisplayName}: {ex.Message}");
-                                System.Diagnostics.Debug.WriteLine($"  Stack trace: {ex.StackTrace}");
-                                result.FailedFiles.Add(file.FullPath);
-                            }
-                        }
-
-                        result.FailedCount = result.FailedFiles.Count;
-
-                        string recoveryInfoPath = Path.Combine(outputFolder, "RecoveryInfo.txt");
-                        var infoContent = new StringBuilder();
-
-                        if (result.RecoveredFiles.Count > 0)
-                        {
-                            infoContent.AppendLine("Recovered Files");
-                            infoContent.AppendLine("------------------");
-                            foreach (var filePath in result.RecoveredFiles)
-                            {
-                                infoContent.AppendLine(filePath);
-                            }
-                        }
-
-                        if (result.FailedFiles.Count > 0)
-                        {
-                            if (result.RecoveredFiles.Count > 0)
-                                infoContent.AppendLine();
-                            infoContent.AppendLine("Failed to Recover");
-                            infoContent.AppendLine("------------------");
-                            foreach (var filePath in result.FailedFiles)
-                            {
-                                infoContent.AppendLine(filePath);
-                                }
-                            }
-
-                            File.WriteAllText(recoveryInfoPath, infoContent.ToString());
-
-                            return result;
+                        fileName = $"RecoveredFile_{file.StartCluster}.dat";
                     }
 
-                                                        private async Task AnimateLoadingDots()
-                                                        {
-                                                            int dotCount = 0;
-                                                            while (_viewModel.IsLoadingOverlayVisible)
-                                                            {
-                                                                dotCount = (dotCount % 3) + 1;
-                                                                await Dispatcher.InvokeAsync(() =>
-                                                                {
-                                                                    _viewModel.LoadingMessage = "Recovering" + new string('.', dotCount);
-                                                                });
-                                                                await Task.Delay(500);
-                                                            }
-                                                        }
+                    string outputPath = Path.Combine(outputFolder, fileName);
 
-                                                        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
-                                                        {
-                                                            try
-                                                            {
-                                                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                                                                {
-                                                                    FileName = e.Uri.AbsoluteUri,
-                                                                    UseShellExecute = true
-                                                                });
-                                                                e.Handled = true;
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                MessageBox.Show(
-                                                                    $"Error opening link:\n{ex.Message}",
-                                                                    "Error",
-                                                                    MessageBoxButton.OK,
-                                                                    MessageBoxImage.Error);
-                                                            }
-                                                        }
+                    int counter = 1;
+                    while (File.Exists(outputPath))
+                    {
+                        string nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                        string extension = Path.GetExtension(fileName);
+                        outputPath = Path.Combine(outputFolder, $"{nameWithoutExt}_{counter}{extension}");
+                        counter++;
+                    }
 
-                                                        private static string NormalizePath(string path)
-                                                        {
-                                                            if (string.IsNullOrEmpty(path)) return "\\";
+                    System.Diagnostics.Debug.WriteLine($"Attempting to recover: {file.DisplayName} -> {outputPath}");
+                    System.Diagnostics.Debug.WriteLine($"  Size: {file.FileSize} bytes, Start Cluster: {file.StartCluster}");
 
-                                                            path = path.Replace("/", "\\");
+                    bool success = analyzer.RecoverFile(file, outputPath);
 
-                                                            if (path.Length >= 2 && path[1] == ':')
-                                                            {
-                                                                path = path.Substring(2);
-                                                            }
+                    System.Diagnostics.Debug.WriteLine($"  Recovery result: {success}");
 
-                                                            path = path.TrimEnd('\\');
-                                                            return string.IsNullOrEmpty(path) ? "\\" : path;
-                                                        }
+                    if (success && File.Exists(outputPath))
+                    {
+                        var fileInfo = new FileInfo(outputPath);
+                        if (fileInfo.Length > 0)
+                        {
+                            result.SuccessCount++;
+                            result.RecoveredFiles.Add(file.FullPath);
+                            System.Diagnostics.Debug.WriteLine($"  Successfully recovered {fileInfo.Length} bytes");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"  File created but is empty");
+                            result.FailedFiles.Add(file.FullPath);
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"  Recovery failed or file not created");
+                        result.FailedFiles.Add(file.FullPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error recovering {file.DisplayName}: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"  Stack trace: {ex.StackTrace}");
+                    result.FailedFiles.Add(file.FullPath);
+                }
+            }
 
-                                                        private static bool IsDeletedFile(FileEntry entry)
-                                                        {
-                                                            return entry != null && !entry.IsDirectory && (entry.IsDeleted || entry.Status == "Replaced");
-                                                        }
+            result.FailedCount = result.FailedFiles.Count;
 
-                                                        private static void SetMenuItemVisibility(ContextMenu contextMenu, string itemName, bool isVisible)
-                                                        {
-                                                            var menuItem = contextMenu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Name == itemName);
-                                                            if (menuItem != null)
-                                                            {
-                                                                menuItem.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
-                                                            }
-                                                        }
+            string recoveryInfoPath = Path.Combine(outputFolder, "RecoveryInfo.txt");
+            var infoContent = new StringBuilder();
 
-                                                        private static void SetSeparatorVisibility(ContextMenu contextMenu, string separatorName, bool isVisible)
-                                                        {
-                                                            var separator = contextMenu.Items.OfType<Separator>().FirstOrDefault(sep => sep.Name == separatorName);
-                                                            if (separator != null)
-                                                            {
-                                                                separator.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
-                                                            }
-                                                        }
+            if (result.RecoveredFiles.Count > 0)
+            {
+                infoContent.AppendLine("Recovered Files");
+                infoContent.AppendLine("------------------");
+                foreach (var filePath in result.RecoveredFiles)
+                {
+                    infoContent.AppendLine(filePath);
+                }
+            }
 
-                                                        private static string BuildFileEntryText(FileEntry entry, bool includeHeaders)
-                                                        {
-                                                            if (includeHeaders)
-                                                            {
-                                                                var sb = new StringBuilder();
-                                                                sb.AppendLine($"Name: {entry.DisplayName}");
-                                                                sb.AppendLine($"Type: {entry.Type}");
-                                                                sb.AppendLine($"Status: {entry.Status}");
-                                                                sb.AppendLine($"Size: {entry.FileSizeFormatted}");
-                                                                sb.AppendLine($"Modified: {entry.DisplayModifiedTime?.ToString("yyyy-MM-dd HH:mm:ss")}");
+            if (result.FailedFiles.Count > 0)
+            {
+                if (result.RecoveredFiles.Count > 0)
+                    infoContent.AppendLine();
+                infoContent.AppendLine("Failed to Recover");
+                infoContent.AppendLine("------------------");
+                foreach (var filePath in result.FailedFiles)
+                {
+                    infoContent.AppendLine(filePath);
+                }
+            }
 
-                                                                if (!string.IsNullOrEmpty(entry.DisplayAccessedTime))
-                                                                    sb.AppendLine($"Accessed: {entry.DisplayAccessedTime}");
+            File.WriteAllText(recoveryInfoPath, infoContent.ToString());
 
-                                                                sb.AppendLine($"Created: {entry.CreationTime?.ToString("yyyy-MM-dd HH:mm:ss")}");
-                                                                sb.AppendLine($"Path: {entry.FullPath}");
+            return result;
+        }
 
-                                                                if (!string.IsNullOrEmpty(entry.Signature))
-                                                                    sb.AppendLine($"Signature: {entry.Signature}");
+        private async Task AnimateLoadingDots()
+        {
+            int dotCount = 0;
+            while (_viewModel.IsLoadingOverlayVisible)
+            {
+                dotCount = (dotCount % 3) + 1;
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _viewModel.LoadingMessage = "Recovering" + new string('.', dotCount);
+                });
+                await Task.Delay(500);
+            }
+        }
 
-                                                                sb.AppendLine($"Attributes: {entry.Attributes}");
-                                                                sb.AppendLine($"Start Cluster: {entry.StartCluster}");
-                                                                sb.AppendLine($"Slack Space: {entry.SlackSpace}");
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = e.Uri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+                e.Handled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error opening link:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
 
-                                                                if (!string.IsNullOrEmpty(entry.ReconstructionSource))
-                                                                    sb.AppendLine($"Reconstruction Source: {entry.ReconstructionSource}");
+        private static string NormalizePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "\\";
 
-                                                                return sb.ToString();
-                                                            }
-                                                            else
-                                                            {
-                                                                return $"{entry.DisplayName}\t{entry.Type}\t{entry.Status}\t{entry.FileSizeFormatted}\t" +
-                                                                       $"{entry.DisplayModifiedTime?.ToString("yyyy-MM-dd HH:mm:ss")}\t" +
-                                                                       $"{entry.DisplayCreatedTime}\t{entry.DisplayAccessedTime}\t{entry.Signature}\t" +
-                                                                       $"{entry.FullPath}\t{entry.Attributes}\t{entry.StartCluster}\t" +
-                                                                       $"{entry.SlackSpace}\t{entry.ReconstructionSource}";
-                                                            }
-                                                        }
-                                                    }
-                                                }
+            path = path.Replace("/", "\\");
+
+            if (path.Length >= 2 && path[1] == ':')
+            {
+                path = path.Substring(2);
+            }
+
+            path = path.TrimEnd('\\');
+            return string.IsNullOrEmpty(path) ? "\\" : path;
+        }
+
+        private static bool IsDeletedFile(FileEntry entry)
+        {
+            return entry != null && !entry.IsDirectory && (entry.IsDeleted || entry.Status == "Replaced");
+        }
+
+        private static void SetMenuItemVisibility(ContextMenu contextMenu, string itemName, bool isVisible)
+        {
+            var menuItem = contextMenu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Name == itemName);
+            if (menuItem != null)
+            {
+                menuItem.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private static void SetSeparatorVisibility(ContextMenu contextMenu, string separatorName, bool isVisible)
+        {
+            var separator = contextMenu.Items.OfType<Separator>().FirstOrDefault(sep => sep.Name == separatorName);
+            if (separator != null)
+            {
+                separator.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private static string BuildFileEntryText(FileEntry entry, bool includeHeaders)
+        {
+            if (includeHeaders)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine($"Name: {entry.DisplayName}");
+                sb.AppendLine($"Type: {entry.Type}");
+                sb.AppendLine($"Status: {entry.Status}");
+                sb.AppendLine($"Size: {entry.FileSizeFormatted}");
+                sb.AppendLine($"Modified: {entry.DisplayModifiedTime?.ToString("yyyy-MM-dd HH:mm:ss")}");
+
+                if (!string.IsNullOrEmpty(entry.DisplayAccessedTime))
+                    sb.AppendLine($"Accessed: {entry.DisplayAccessedTime}");
+
+                sb.AppendLine($"Created: {entry.CreationTime?.ToString("yyyy-MM-dd HH:mm:ss")}");
+                sb.AppendLine($"Path: {entry.FullPath}");
+
+                if (!string.IsNullOrEmpty(entry.Signature))
+                    sb.AppendLine($"Signature: {entry.Signature}");
+
+                sb.AppendLine($"Attributes: {entry.Attributes}");
+                sb.AppendLine($"Start Cluster: {entry.StartCluster}");
+                sb.AppendLine($"Slack Space: {entry.SlackSpace}");
+
+                if (!string.IsNullOrEmpty(entry.ReconstructionSource))
+                    sb.AppendLine($"Reconstruction Source: {entry.ReconstructionSource}");
+
+                return sb.ToString();
+            }
+            else
+            {
+                return $"{entry.DisplayName}\t{entry.Type}\t{entry.Status}\t{entry.FileSizeFormatted}\t" +
+                       $"{entry.DisplayModifiedTime?.ToString("yyyy-MM-dd HH:mm:ss")}\t" +
+                       $"{entry.DisplayCreatedTime}\t{entry.DisplayAccessedTime}\t{entry.Signature}\t" +
+                       $"{entry.FullPath}\t{entry.Attributes}\t{entry.StartCluster}\t" +
+                       $"{entry.SlackSpace}\t{entry.ReconstructionSource}";
+            }
+        }
+    }
+}
 
