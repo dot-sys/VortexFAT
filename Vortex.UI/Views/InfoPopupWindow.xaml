@@ -86,7 +86,7 @@ WindowStartupLocation="CenterOwner">
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
+
                 <!-- Info Icon (large lowercase i) -->
                 <Viewbox Grid.Column="0" Width="60" Height="60" 
                          Margin="0,0,15,0" 
@@ -98,7 +98,7 @@ WindowStartupLocation="CenterOwner">
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"/>
                 </Viewbox>
-                
+
                 <!-- Content Area -->
                 <ContentPresenter Grid.Column="1" 
                                   x:Name="ContentPresenter" 

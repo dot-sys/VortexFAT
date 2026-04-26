@@ -1,5 +1,4 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Costura.Fody.6.0.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.6.0.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -16,9 +15,21 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DisableFody>true</DisableFody>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -82,9 +93,6 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Costura, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Costura.Fody.6.0.0\lib\netstandard2.0\Costura.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -114,14 +122,9 @@
     <Compile Include="Converters\ItemsCountConverter.cs" />
     <Compile Include="Converters\RowForegroundConverter.cs" />
     <Compile Include="Helpers\DataGridContextMenuHelper.cs" />
-    <Compile Include="ViewModels\DashboardViewModel.cs" />
     <Compile Include="ViewModels\FATAnalyzerViewModel.cs" />
-    <Compile Include="ViewModels\FrameworkViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\SimpleRelayCommand.cs" />
-    <Compile Include="Views\DashboardView.xaml.cs">
-      <DependentUpon>DashboardView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\FATAnalyzerView.xaml.cs">
       <DependentUpon>FATAnalyzerView.xaml</DependentUpon>
     </Compile>
@@ -160,9 +163,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Resources\Strings.uk-UA.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\DashboardView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\FATAnalyzerView.xaml">
@@ -204,17 +204,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="FodyWeavers.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\VortexWhiteLogoSmall.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\VortexWhiteLogo40.png" />
-    <Resource Include="Assets\VortexWhiteLogo45.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\Mag_White.png" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
@@ -226,7 +220,6 @@
     <Resource Include="Assets\VortexWhiteLogo.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="VortexWhiteLogoSmall.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\VortexIcon.ico" />
@@ -238,17 +231,37 @@
     <ProjectReference Include="..\Drives\Drives.csproj">
       <Project>{e58f32d2-ea1e-44b6-b66d-f8dbb10e0a61}</Project>
       <Name>Drives</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Costura.Fody.6.0.0\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.6.0.0\build\Costura.Fody.props'))" />
-    <Error Condition="!Exists('..\packages\Costura.Fody.6.0.0\build\Costura.Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.6.0.0\build\Costura.Fody.targets'))" />
-    <Error Condition="!Exists('..\packages\Fody.6.9.3\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.6.9.3\build\Fody.targets'))" />
+  <Target Name="BeforeBuild" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <OldFiles Include="Resources\Embedded\*.dll" />
+    </ItemGroup>
+    <Delete Files="@(OldFiles)" />
+    <ItemGroup>
+      <EmbedFiles Include="$(SolutionDir)Drives\bin\Release\Drives.dll" />
+      <EmbedFiles Include="$(SolutionDir)packages\DeviceIOControlLib.0.1.6\lib\net40\DeviceIOControlLib.dll" />
+      <EmbedFiles Include="$(SolutionDir)packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll" />
+    </ItemGroup>
+    <MakeDir Directories="Resources\Embedded" />
+    <Copy SourceFiles="@(EmbedFiles)" DestinationFolder="Resources\Embedded" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\Embedded\*.dll" />
+    </ItemGroup>
+    <Message Text="SUCCESS: Staged all forensic and system dependencies for Release." Importance="high" />
   </Target>
-  <Import Project="..\packages\Costura.Fody.6.0.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.6.0.0\build\Costura.Fody.targets')" />
-  <Import Project="..\packages\Fody.6.9.3\build\Fody.targets" Condition="Exists('..\packages\Fody.6.9.3\build\Fody.targets')" />
 </Project>
