@@ -212,7 +212,7 @@ namespace Vortex.UI.Views
         private void CopyAll_Click(object sender, RoutedEventArgs e)
         {
             var allData = new StringBuilder();
-            allData.AppendLine("Name\tType\tStatus\tSize\tModified\tCreated\tAccessed\tSignature\tPath\tAttributes\tStart Cluster\tSlack Space\tReconstruction Source");
+            allData.AppendLine("Name\tType\tStatus\tSize\tModified\tCreated\tAccessed\tSignature\tPath\tAttributes\tStart Cluster\tSlack Space");
 
             foreach (FileEntry entry in _viewModel.FilteredFiles)
             {
@@ -588,8 +588,6 @@ namespace Vortex.UI.Views
                 sb.AppendLine($"Start Cluster: {entry.StartCluster}");
                 sb.AppendLine($"Slack Space: {entry.SlackSpace}");
 
-                if (!string.IsNullOrEmpty(entry.ReconstructionSource))
-                    sb.AppendLine($"Reconstruction Source: {entry.ReconstructionSource}");
 
                 return sb.ToString();
             }
@@ -599,9 +597,8 @@ namespace Vortex.UI.Views
                        $"{entry.DisplayModifiedTime?.ToString("yyyy-MM-dd HH:mm:ss")}\t" +
                        $"{entry.DisplayCreatedTime}\t{entry.DisplayAccessedTime}\t{entry.Signature}\t" +
                        $"{entry.FullPath}\t{entry.Attributes}\t{entry.StartCluster}\t" +
-                       $"{entry.SlackSpace}\t{entry.ReconstructionSource}";
+                       $"{entry.SlackSpace}";
             }
         }
     }
 }
-

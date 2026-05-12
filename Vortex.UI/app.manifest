@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
-  <assemblyIdentity version="1.0.0.0" processorArchitecture="*" name="VortexViewer.Journal" type="win32"/>
-  <description>VortexViewer forensic tool</description>
+  <assemblyIdentity version="1.2.0.0" processorArchitecture="*" name="VortexFAT.UI" type="win32"/>
+  <description>VortexFAT forensic tool</description>
   
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>

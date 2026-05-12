@@ -1,8 +1,8 @@
 // Utility functions for filesystem operations
-namespace Drives.Util
+namespace Vortex.UI.Helpers
 {
     // Windows API interop methods
-    internal static class NativeMethods
+    public static class NativeMethods
     {
         // Retrieves disk space information
         [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Auto)]

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,6 +20,9 @@ namespace Vortex.UI
         public MainWindow()
         {
             InitializeComponent();
+
+            Drives.Util.PlatformInterop.CheckSignature = Vortex.UI.Helpers.SigVerifier.CheckSignature;
+            Drives.Util.PlatformInterop.GetDiskFreeSpace = Vortex.UI.Helpers.NativeMethods.GetDiskFreeSpace;
 
             this.Loaded += MainWindow_Loaded;
 

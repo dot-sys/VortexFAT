@@ -6,16 +6,16 @@ using System.IO;
 // Core filesystem analysis and recovery logic
 namespace Drives.Core
 {
-    // Handles FAT32 filesystem operations
-    public class FAT32
+    // Handles FAT16 filesystem operations
+    public class FAT16
     {
         // Minimum valid cluster number
         private const uint FAT32_MIN_CLUSTER = 2;
         // End of cluster chain marker
-        private const uint FAT32_EOC_MARKER = 0x0FFFFFF8;
+        private const uint FAT16_EOC_MARKER = 0xFFF8;
 
         // Reads and parses boot sector
-        public static FAT32BootSector ReadBootSector(Stream diskStream)
+        public static FAT16BootSector ReadBootSector(Stream diskStream)
         {
             try
             {
@@ -23,27 +23,62 @@ namespace Drives.Core
                 diskStream.Position = 0;
                 diskStream.Read(sector, 0, 512);
 
-                var bootSector = new FAT32BootSector
+                var bootSector = new FAT16BootSector
                 {
                     BytesPerSector = BitConverter.ToUInt16(sector, 11),
                     SectorsPerCluster = sector[13],
                     ReservedSectors = BitConverter.ToUInt16(sector, 14),
                     NumberOfFATs = sector[16],
-                    SectorsPerFAT = BitConverter.ToUInt32(sector, 36),
-                    RootCluster = BitConverter.ToUInt32(sector, 44)
+                    RootEntryCount = BitConverter.ToUInt16(sector, 17),
+                    TotalSectors16 = BitConverter.ToUInt16(sector, 19),
+                    MediaDescriptor = sector[21],
+                    SectorsPerFAT = BitConverter.ToUInt16(sector, 22)
                 };
 
                 return bootSector;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error reading boot sector: {ex.Message}");
                 return null;
                 }
             }
 
+            // Scans FAT16 root directory cluster
+            public static void ScanRootDirectory(Stream diskStream, FAT16BootSector bootSector, string rootPath, List<FileEntry> deletedFiles, Action<byte[], string, List<FileEntry>, List<uint>, List<string>, bool> parseDirectoryEntries)
+        {
+            try
+            {
+
+                long rootDirOffset = (bootSector.ReservedSectors + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT)) * bootSector.BytesPerSector;
+                long rootDirSize = bootSector.RootEntryCount * 32;
+
+                byte[] rootDirData = new byte[rootDirSize];
+                diskStream.Position = rootDirOffset;
+                int bytesRead = diskStream.Read(rootDirData, 0, (int)rootDirSize);
+
+                if (bytesRead != rootDirSize)
+                {
+                }
+
+                var subdirectoryClusters = new List<uint>();
+                var subdirectoryNames = new List<string>();
+                parseDirectoryEntries(rootDirData, rootPath, deletedFiles, subdirectoryClusters, subdirectoryNames, true);
+
+                for (int i = 0; i < subdirectoryClusters.Count; i++)
+                {
+                    uint subdirCluster = subdirectoryClusters[i];
+                    string subdirName = i < subdirectoryNames.Count ? subdirectoryNames[i] : $"subdir_{subdirCluster}";
+                    string subdirPath = rootPath.EndsWith("\\") ? rootPath + subdirName : rootPath + "\\" + subdirName;
+                    ScanDirectoryCluster(diskStream, bootSector, subdirCluster, subdirPath, deletedFiles, new HashSet<uint>(), parseDirectoryEntries);
+                }
+            }
+            catch (Exception ex)
+            {
+                }
+            }
+
             // Reads directory cluster recursively
-            public static void ScanDirectoryCluster(Stream diskStream, FAT32BootSector bootSector, uint cluster, string dirPath, List<FileEntry> deletedFiles, HashSet<uint> visitedClusters, Action<byte[], string, List<FileEntry>, List<uint>, List<string>, bool> parseDirectoryEntries)
+            public static void ScanDirectoryCluster(Stream diskStream, FAT16BootSector bootSector, uint cluster, string dirPath, List<FileEntry> deletedFiles, HashSet<uint> visitedClusters, Action<byte[], string, List<FileEntry>, List<uint>, List<string>, bool> parseDirectoryEntries)
         {
             try
             {
@@ -52,7 +87,6 @@ namespace Drives.Core
 
                 visitedClusters.Add(cluster);
 
-                System.Diagnostics.Debug.WriteLine($"Scanning cluster {cluster} for directory: {dirPath}");
 
                 long clusterOffset = GetClusterOffset(bootSector, cluster);
                 long clusterSize = bootSector.BytesPerSector * bootSector.SectorsPerCluster;
@@ -63,12 +97,11 @@ namespace Drives.Core
 
                 if (bytesRead != clusterSize)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Warning: Only read {bytesRead} of {clusterSize} bytes");
                 }
 
                 var subdirectoryClusters = new List<uint>();
                 var subdirectoryNames = new List<string>();
-                parseDirectoryEntries(clusterData, dirPath, deletedFiles, subdirectoryClusters, subdirectoryNames, false);
+                parseDirectoryEntries(clusterData, dirPath, deletedFiles, subdirectoryClusters, subdirectoryNames, true);
 
                 uint nextCluster = ReadFATEntry(diskStream, bootSector, cluster);
                 if (IsValidCluster(nextCluster))
@@ -86,48 +119,48 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error scanning cluster {cluster}: {ex.Message}");
                 }
             }
 
             // Calculates byte offset for cluster
-            public static long GetClusterOffset(FAT32BootSector bootSector, uint cluster)
+            public static long GetClusterOffset(FAT16BootSector bootSector, uint cluster)
         {
-            long firstDataSector = bootSector.ReservedSectors + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT);
+            long rootDirSectors = (bootSector.RootEntryCount * 32 + bootSector.BytesPerSector - 1) / bootSector.BytesPerSector;
+            long firstDataSector = bootSector.ReservedSectors + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT) + rootDirSectors;
             long clusterSector = firstDataSector + ((cluster - 2) * bootSector.SectorsPerCluster);
                 return clusterSector * bootSector.BytesPerSector;
             }
 
             // Reads FAT table entry value
-            public static uint ReadFATEntry(Stream diskStream, FAT32BootSector bootSector, uint cluster)
+            public static uint ReadFATEntry(Stream diskStream, FAT16BootSector bootSector, uint cluster)
         {
             try
             {
                 long fatOffset = bootSector.ReservedSectors * bootSector.BytesPerSector;
-                long entryOffset = fatOffset + (cluster * 4);
+                long entryOffset = fatOffset + (cluster * 2);
 
-                byte[] entryBytes = new byte[4];
+                byte[] entryBytes = new byte[2];
                 diskStream.Position = entryOffset;
-                diskStream.Read(entryBytes, 0, 4);
+                diskStream.Read(entryBytes, 0, 2);
 
-                uint value = BitConverter.ToUInt32(entryBytes, 0) & 0x0FFFFFFF;
+                uint value = BitConverter.ToUInt16(entryBytes, 0);
                 return value;
             }
             catch
             {
-                return 0xFFFFFFFF;
+                return 0xFFFF;
                 }
             }
 
             // Validates cluster number range
             public static bool IsValidCluster(uint cluster)
         {
-            return cluster >= FAT32_MIN_CLUSTER && cluster < FAT32_EOC_MARKER;
+            return cluster >= FAT32_MIN_CLUSTER && cluster < FAT16_EOC_MARKER;
             }
         }
 
-        // Stores FAT32 boot sector data
-        public class FAT32BootSector
+        // Stores FAT16 boot sector data
+        public class FAT16BootSector
         {
         // Sector size in bytes
         public ushort BytesPerSector { get; set; }
@@ -137,9 +170,13 @@ namespace Drives.Core
         public ushort ReservedSectors { get; set; }
         // Number of FAT copies
         public byte NumberOfFATs { get; set; }
+        // Maximum root directory entries
+        public ushort RootEntryCount { get; set; }
+        // Total sectors on volume
+        public ushort TotalSectors16 { get; set; }
+        // Media type descriptor byte
+        public byte MediaDescriptor { get; set; }
         // FAT table size in sectors
-        public uint SectorsPerFAT { get; set; }
-        // Root directory first cluster
-        public uint RootCluster { get; set; }
+        public ushort SectorsPerFAT { get; set; }
     }
 }

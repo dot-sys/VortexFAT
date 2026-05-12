@@ -39,13 +39,11 @@ namespace Drives.Core
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error accessing drive {drive.Name}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error enumerating drives: {ex.Message}");
             }
 
                     return driveList;

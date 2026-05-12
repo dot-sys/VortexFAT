@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 
 // Utility functions for filesystem operations
-namespace Drives.Util
+namespace Vortex.UI.Helpers
 {
     // Verifies digital signatures on files
     public static class SigVerifier

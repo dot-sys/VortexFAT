@@ -69,7 +69,7 @@ namespace Drives.Util
 
                 byte[] fileData = ReadDeletedFileData(fileEntry, driveLetter, isExFAT, isFAT16);
                 if (fileData == null || fileData.Length == 0)
-                    return "Unrecoverable";
+                    return new string(new[] { 'U', 'n', 'r', 'e', 'c', 'o', 'v', 'e', 'r', 'a', 'b', 'l', 'e' });
 
                 return CarveHashFromData(fileData);
             }
@@ -79,7 +79,7 @@ namespace Drives.Util
 
         private static byte[] ReadDeletedFileData(FileEntry fileEntry, string driveLetter, bool isExFAT, bool isFAT16)
         {
-            string drivePath = $"\\\\.\\{driveLetter.TrimEnd('\\')}";
+            string drivePath = $@"\\.\{driveLetter.TrimEnd('\\')}";
 
             using (var driveStream = new FileStream(drivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: false))
             {

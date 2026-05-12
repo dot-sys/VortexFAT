@@ -25,22 +25,22 @@ namespace Drives.Util
         {
             if (fileEntry == null || fileEntry.IsDirectory)
             {
-                throw new ArgumentException("Cannot recover directories, only files.");
+                throw new ArgumentException("Error Code:4");
             }
 
             if (fileEntry.StartCluster < 2)
             {
-                throw new InvalidOperationException("Invalid start cluster for file recovery.");
+                throw new InvalidOperationException("Error Code:5");
             }
 
             try
             {
                 if (!IsAdministrator())
                 {
-                    throw new UnauthorizedAccessException("Administrator privileges required for file recovery.");
+                    throw new UnauthorizedAccessException("Error Code:2");
                 }
 
-                string drivePath = $"\\\\.\\{driveLetter.TrimEnd('\\')}";
+                string drivePath = $@"\\.\{driveLetter.TrimEnd('\\')}";
 
                 using (var driveStream = new FileStream(drivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: false))
                 {
@@ -49,14 +49,13 @@ namespace Drives.Util
 
                     if (isExFAT)
                     {
-                        var bootSector = ExFAT.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Failed to read exFAT boot sector.");
+                        var bootSector = ExFAT.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Error Code:6");
                         clusterSize = bootSector.BytesPerSector * bootSector.SectorsPerCluster;
 
                         fileData = RecoverContiguousFile(driveStream, bootSector, (uint)fileEntry.StartCluster, fileEntry.FileSize);
 
                         if ((fileData == null || fileData.Length < fileEntry.FileSize / 2) && fileEntry.FileSize > clusterSize * 2)
                         {
-                            System.Diagnostics.Debug.WriteLine("Contiguous recovery incomplete, trying FAT chain fallback");
                             fileData = RecoverFileData(
                                 driveStream,
                                 (uint)fileEntry.StartCluster,
@@ -70,7 +69,7 @@ namespace Drives.Util
                     }
                     else if (isFAT16)
                     {
-                        var bootSector = FAT16.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Failed to read FAT16 boot sector.");
+                        var bootSector = FAT16.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Error Code:7");
                         clusterSize = bootSector.BytesPerSector * bootSector.SectorsPerCluster;
                         fileData = RecoverFileData(
                             driveStream,
@@ -85,7 +84,7 @@ namespace Drives.Util
                     }
                     else
                     {
-                        var bootSector = FAT32.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Failed to read FAT32 boot sector.");
+                        var bootSector = FAT32.ReadBootSector(driveStream) ?? throw new InvalidOperationException("Error Code:8");
                         clusterSize = bootSector.BytesPerSector * bootSector.SectorsPerCluster;
                         fileData = RecoverFileData(
                             driveStream,
@@ -109,7 +108,6 @@ namespace Drives.Util
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error recovering file: {ex.Message}");
                 throw;
                 }
             }
@@ -130,7 +128,6 @@ namespace Drives.Util
             int clustersNeeded = (int)((fileSize + clusterSize - 1) / clusterSize);
             long bytesRemaining = fileSize;
 
-            System.Diagnostics.Debug.WriteLine($"{fileSystemType} Recovery: Start cluster={startCluster}, File size={fileSize}, Cluster size={clusterSize}, Clusters needed={clustersNeeded}");
 
             var clusterChain = BuildClusterChain(startCluster, clustersNeeded, readFATEntry, isValidCluster, isFAT16);
 
@@ -150,15 +147,12 @@ namespace Drives.Util
                 {
                     data.AddRange(clusterData.Take(bytesRead));
                     bytesRemaining -= bytesRead;
-                    System.Diagnostics.Debug.WriteLine($"Read cluster {cluster:X} at offset {clusterOffset:X}, bytes: {bytesRead}, remaining: {bytesRemaining}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to read cluster {cluster:X}");
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"Recovery complete. Recovered {data.Count} bytes of {fileSize} bytes");
                 return data.ToArray();
             }
 
@@ -170,7 +164,6 @@ namespace Drives.Util
             var data = new List<byte>();
             long bytesRemaining = fileSize;
 
-            System.Diagnostics.Debug.WriteLine($"exFAT Contiguous Recovery: Start cluster={startCluster}, File size={fileSize}, Cluster size={clusterSize}, Clusters needed={clustersNeeded}");
 
             for (int i = 0; i < clustersNeeded && bytesRemaining > 0; i++)
             {
@@ -186,16 +179,13 @@ namespace Drives.Util
                 {
                     data.AddRange(clusterData.Take(bytesRead));
                     bytesRemaining -= bytesRead;
-                    System.Diagnostics.Debug.WriteLine($"Read contiguous cluster {cluster:X} at offset {clusterOffset:X}, bytes: {bytesRead}, remaining: {bytesRemaining}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to read contiguous cluster {cluster:X}");
                     break;
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"Contiguous recovery complete. Recovered {data.Count} bytes of {fileSize} bytes");
                 return data.ToArray();
             }
 
@@ -210,7 +200,6 @@ namespace Drives.Util
                 {
                     clusterChain.Add(startCluster + (uint)i);
                 }
-                System.Diagnostics.Debug.WriteLine($"FAT16 large file detected ({clustersNeeded} clusters). Using consecutive cluster assumption.");
                 return clusterChain;
             }
 
@@ -221,7 +210,6 @@ namespace Drives.Util
             {
                 if (visitedClusters.Contains(currentCluster))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Circular reference detected at cluster {currentCluster:X}");
                     break;
                 }
 
@@ -232,7 +220,6 @@ namespace Drives.Util
 
                 if (nextCluster == 0 || nextCluster == 1)
                 {
-                    System.Diagnostics.Debug.WriteLine($"FAT chain broken at cluster {currentCluster:X} (next={nextCluster:X}). Likely a deleted file.");
                     break;
                 }
 
@@ -241,7 +228,6 @@ namespace Drives.Util
 
             if (clusterChain.Count < clustersNeeded)
             {
-                System.Diagnostics.Debug.WriteLine($"FAT chain incomplete ({clusterChain.Count} clusters). Using consecutive clusters starting from {startCluster}.");
                 clusterChain.Clear();
                 for (int i = 0; i < clustersNeeded; i++)
                 {

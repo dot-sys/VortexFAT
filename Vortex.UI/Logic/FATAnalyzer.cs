@@ -42,7 +42,7 @@ namespace Drives.Core
 
             if (_driveInfo == null || !_driveInfo.IsSupported)
             {
-                throw new ArgumentException($"Drive {driveLetter} is not a supported FAT file system.");
+                throw new ArgumentException("Error Code:9");
             }
 
             _isExFAT = _driveInfo.FileSystem.Equals("exFAT", StringComparison.OrdinalIgnoreCase);
@@ -62,7 +62,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error analyzing drive {_driveLetter}: {ex.Message}");
             }
 
             return files;
@@ -101,7 +100,6 @@ namespace Drives.Core
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error accessing directory info {directory.FullName}: {ex.Message}");
                     }
                 }
 
@@ -124,14 +122,13 @@ namespace Drives.Core
                             Attributes = fileInfo.Attributes.ToString(),
                             IsDeleted = false,
                             IsDirectory = false,
-                            Signature = Util.SigVerifier.CheckSignature(fileInfo.FullName)
+                            Signature = Util.PlatformInterop.CheckSignature(fileInfo.FullName)
                         };
 
                         files.Add(entry);
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error accessing file {fileInfo.FullName}: {ex.Message}");
                     }
                 }
 
@@ -143,13 +140,11 @@ namespace Drives.Core
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error accessing directory {directory.FullName}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error enumerating path {path}: {ex.Message}");
             }
         }
 
@@ -162,12 +157,11 @@ namespace Drives.Core
             {
                 if (!Util.Recovery.IsAdministrator())
                 {
-                    throw new UnauthorizedAccessException("Administrator privileges required for low-level disk access.");
+                    throw new UnauthorizedAccessException("Error Code:1");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Starting deleted file scan on {_driveLetter} (File System: {_driveInfo.FileSystem})");
 
-                string drivePath = $"\\\\.\\{_driveLetter}";
+                string drivePath = $@"\\.\{_driveLetter}";
                 string rootPath = _driveLetter + "\\";
 
                 using (var driveStream = new FileStream(drivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: false))
@@ -177,15 +171,9 @@ namespace Drives.Core
                         var exFatBootSector = ExFAT.ReadBootSector(driveStream);
                         if (exFatBootSector == null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Failed to read exFAT boot sector");
                             return deletedFiles;
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"exFAT Boot Sector Info:");
-                        System.Diagnostics.Debug.WriteLine($"  Bytes per sector: {exFatBootSector.BytesPerSector}");
-                        System.Diagnostics.Debug.WriteLine($"  Sectors per cluster: {exFatBootSector.SectorsPerCluster}");
-                        System.Diagnostics.Debug.WriteLine($"  Cluster heap offset: {exFatBootSector.ClusterHeapOffset}");
-                        System.Diagnostics.Debug.WriteLine($"  Root directory cluster: {exFatBootSector.RootDirectoryCluster}");
 
                         ExFAT.ScanDirectoryCluster(driveStream, exFatBootSector, exFatBootSector.RootDirectoryCluster, rootPath, deletedFiles, new HashSet<uint>(), ParseExFATFileEntry);
                     }
@@ -194,17 +182,9 @@ namespace Drives.Core
                         var bootSector = FAT16.ReadBootSector(driveStream);
                         if (bootSector == null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Failed to read FAT16 boot sector");
                             return deletedFiles;
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"FAT16 Boot Sector Info:");
-                        System.Diagnostics.Debug.WriteLine($"  Bytes per sector: {bootSector.BytesPerSector}");
-                        System.Diagnostics.Debug.WriteLine($"  Sectors per cluster: {bootSector.SectorsPerCluster}");
-                        System.Diagnostics.Debug.WriteLine($"  Reserved sectors: {bootSector.ReservedSectors}");
-                        System.Diagnostics.Debug.WriteLine($"  FAT count: {bootSector.NumberOfFATs}");
-                        System.Diagnostics.Debug.WriteLine($"  Sectors per FAT: {bootSector.SectorsPerFAT}");
-                        System.Diagnostics.Debug.WriteLine($"  Root entry count: {bootSector.RootEntryCount}");
 
                         FAT16.ScanRootDirectory(driveStream, bootSector, rootPath, deletedFiles, ParseDirectoryEntries);
                     }
@@ -213,17 +193,9 @@ namespace Drives.Core
                         var bootSector = FAT32.ReadBootSector(driveStream);
                         if (bootSector == null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Failed to read boot sector");
                             return deletedFiles;
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"Boot Sector Info:");
-                        System.Diagnostics.Debug.WriteLine($"  Bytes per sector: {bootSector.BytesPerSector}");
-                        System.Diagnostics.Debug.WriteLine($"  Sectors per cluster: {bootSector.SectorsPerCluster}");
-                        System.Diagnostics.Debug.WriteLine($"  Reserved sectors: {bootSector.ReservedSectors}");
-                        System.Diagnostics.Debug.WriteLine($"  FAT count: {bootSector.NumberOfFATs}");
-                        System.Diagnostics.Debug.WriteLine($"  Sectors per FAT: {bootSector.SectorsPerFAT}");
-                        System.Diagnostics.Debug.WriteLine($"  Root cluster: {bootSector.RootCluster}");
 
                         FAT32.ScanDirectoryCluster(driveStream, bootSector, bootSector.RootCluster, rootPath, deletedFiles, new HashSet<uint>(), ParseDirectoryEntries);
                     }
@@ -231,7 +203,6 @@ namespace Drives.Core
 
                 CarveHashesForFiles(deletedFiles);
 
-                System.Diagnostics.Debug.WriteLine($"Deleted file scan complete. Found {deletedFiles.Count} deleted items.");
             }
             catch (UnauthorizedAccessException)
             {
@@ -239,8 +210,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error scanning for deleted files: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack: {ex.StackTrace}");
             }
 
             return deletedFiles;
@@ -295,7 +264,6 @@ namespace Drives.Core
                             var fileEntry = CreateFileEntry(entry, dirPath, fileName);
                             deletedFiles.Add(fileEntry);
                             string fsType = isFAT16 ? "FAT16" : "FAT32";
-                            System.Diagnostics.Debug.WriteLine($"Found deleted {fsType} file: {fileEntry.ReconstructedFileName} ({fileEntry.FileSizeFormatted})");
                         }
 
                         bool isValidCluster = isFAT16 ? FAT16.IsValidCluster(entry.FirstCluster) : FAT32.IsValidCluster(entry.FirstCluster);
@@ -363,7 +331,6 @@ namespace Drives.Core
                             byte expectedChecksum = Util.LFNParser.CalculateLFNChecksum(shortNameBuffer);
                             byte lfnChecksum = lfnEntries.Count > 0 ? lfnEntries[0][13] : (byte)0;
 
-                            System.Diagnostics.Debug.WriteLine($"LFN Checksum: {lfnChecksum:X2}, Expected: {expectedChecksum:X2}, LFN: {reconstructedLFN}");
                         }
 
                         if (reconstructedLFN.StartsWith("?"))
@@ -381,7 +348,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error parsing entry: {ex.Message}");
                 return null;
             }
         }
@@ -407,7 +373,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error analyzing file slack: {ex.Message}");
             }
         }
 
@@ -435,9 +400,7 @@ namespace Drives.Core
                 IsDeleted = true,
                 IsDirectory = entry.IsDirectory,
                 StartCluster = entry.FirstCluster,
-                ReconstructionConfidence = CalculateConfidence(entry),
-                ReconstructionSource = entry.LongName != null ? "LFN Entry" : "Short Name",
-                ReconstructionNotes = BuildReconstructionNotes(entry)
+                UseContiguousClusters = false
             };
         }
 
@@ -445,45 +408,6 @@ namespace Drives.Core
         private FileEntry ParseExFATFileEntry(byte[] clusterData, int fileEntryOffset, bool isDeleted, string dirPath)
         {
             return ExFAT.ParseFileEntry(clusterData, fileEntryOffset, isDeleted, dirPath);
-        }
-
-        // Computes filename recovery confidence level
-        private int CalculateConfidence(RawDirectoryEntry entry)
-        {
-            int confidence = 30;
-
-            if (entry.LongName != null)
-                confidence += 30;
-
-            if (entry.CreationTime != null)
-                confidence += 20;
-
-            if (entry.FileSize > 0 && !entry.IsDirectory)
-                confidence += 10;
-
-            if (entry.FirstCluster >= 2 && entry.FirstCluster < 0x0FFFFFF8)
-                confidence += 10;
-
-            return Math.Min(confidence, 100);
-        }
-
-        // Generates notes about recovery process
-        private string BuildReconstructionNotes(RawDirectoryEntry entry)
-        {
-            var notes = new List<string>
-                                                {
-                                                    "First character of filename replaced with '?'"
-                                                };
-
-            if (entry.LongName != null)
-                notes.Add("Long filename recovered from LFN entries");
-            else
-                notes.Add("Only 8.3 short name available");
-
-            if (entry.FirstCluster < 2)
-                notes.Add("WARNING: Invalid cluster - data may be unrecoverable");
-
-            return string.Join("; ", notes);
         }
 
         // Carves hash values from file content

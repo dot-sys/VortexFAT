@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -8,7 +8,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("VortexFAT")]
-[assembly: AssemblyDescription("Forensic FAT Drive Viewer")]
+[assembly: AssemblyDescription("System Data Explorer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dot-Sys")]
 [assembly: AssemblyProduct("VortexFAT")]

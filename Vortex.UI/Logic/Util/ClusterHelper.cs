@@ -16,11 +16,7 @@ namespace Drives.Util
             {
                 var drive = driveLetter.TrimEnd('\\');
 
-                if (NativeMethods.GetDiskFreeSpace(drive + "\\",
-                    out uint sectorsPerCluster,
-                    out uint bytesPerSector,
-                    out uint numberOfFreeClusters,
-                    out uint totalNumberOfClusters))
+                if (PlatformInterop.GetDiskFreeSpace != null && PlatformInterop.GetDiskFreeSpace(drive + "\\", out uint sectorsPerCluster, out uint bytesPerSector, out uint freeClusters, out uint totalClusters))
                 {
                     return sectorsPerCluster * bytesPerSector;
                 }

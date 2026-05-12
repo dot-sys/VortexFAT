@@ -92,7 +92,7 @@ namespace Drives.Models
                 if (attrStr.Contains("SYSTEM")) attrs.Add("S");
                 if (attrStr.Contains("NORMAL")) attrs.Add("N");
                 if (attrStr.Contains("TEMPORARY")) attrs.Add("T");
-                if (attrStr.Contains("COMPRESSED")) attrs.Add("C");
+                if (attrStr.Contains("COMP")) attrs.Add("C");
                 if (attrStr.Contains("ENCRYPTED")) attrs.Add("E");
                 if (attrStr.Contains("OFFLINE")) attrs.Add("O");
                 if (attrStr.Contains("NOTCONTENTINDEXED")) attrs.Add("I");
@@ -115,17 +115,8 @@ namespace Drives.Models
             // Recovered original filename
             public string ReconstructedFileName { get; set; }
 
-            // Recovery confidence level
-            public int ReconstructionConfidence { get; set; }
-
             // Raw slack data bytes
             public byte[] SlackData { get; set; }
-
-            // Source of recovery
-            public string ReconstructionSource { get; set; }
-
-            // Recovery process notes
-            public string ReconstructionNotes { get; set; }
 
             // File signature status
             public string Signature { get; set; }

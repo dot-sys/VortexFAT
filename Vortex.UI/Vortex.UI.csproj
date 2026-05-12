@@ -12,7 +12,7 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
+    <Deterministic>false</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
@@ -26,7 +26,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
+    <ApplicationVersion>1.2.0.0</ApplicationVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -43,6 +43,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -50,6 +51,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Vortex.UI.App</StartupObject>
@@ -64,6 +66,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
     <OutputPath>bin\x86\Release\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
@@ -80,7 +85,8 @@
     <OutputPath>bin\x64\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
@@ -93,6 +99,9 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeviceIOControlLib, Version=0.1.6.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
+      <HintPath>..\packages\DeviceIOControlLib.0.1.6\lib\net40\DeviceIOControlLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -131,7 +140,23 @@
     <Compile Include="Views\InfoPopupWindow.xaml.cs">
       <DependentUpon>InfoPopupWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\\PopupHelper.cs" />
+    <Compile Include="Helpers\PopupHelper.cs" />
+    <Compile Include="Logic\Core\DriveDetector.cs" />
+    <Compile Include="Logic\Core\ExFAT.cs" />
+    <Compile Include="Logic\Core\FAT16.cs" />
+    <Compile Include="Logic\Core\FAT32.cs" />
+    <Compile Include="Logic\FATAnalyzer.cs" />
+    <Compile Include="Logic\Models\DriveInfo.cs" />
+    <Compile Include="Logic\Models\FileEntry.cs" />
+    <Compile Include="Logic\Util\ClusterHelper.cs" />
+    <Compile Include="Logic\Util\DateTimeParser.cs" />
+    <Compile Include="Logic\Util\FormatHelper.cs" />
+    <Compile Include="Logic\Util\HashCarver.cs" />
+    <Compile Include="Logic\Util\LFNParser.cs" />
+    <Compile Include="Logic\Util\PlatformInterop.cs" />
+    <Compile Include="Logic\Util\Recovery.cs" />
+    <Compile Include="Helpers\SigVerifier.cs" />
+    <Compile Include="Helpers\NativeMethods.cs" />
     <Compile Include="Views\WelcomeView.xaml.cs">
       <DependentUpon>WelcomeView.xaml</DependentUpon>
     </Compile>
@@ -228,11 +253,6 @@
     <Resource Include="VortexIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Drives\Drives.csproj">
-      <Project>{e58f32d2-ea1e-44b6-b66d-f8dbb10e0a61}</Project>
-      <Name>Drives</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.2">
@@ -248,20 +268,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="BeforeBuild" Condition="'$(Configuration)' == 'Release'">
-    <ItemGroup>
-      <OldFiles Include="Resources\Embedded\*.dll" />
-    </ItemGroup>
-    <Delete Files="@(OldFiles)" />
-    <ItemGroup>
-      <EmbedFiles Include="$(SolutionDir)Drives\bin\Release\Drives.dll" />
-      <EmbedFiles Include="$(SolutionDir)packages\DeviceIOControlLib.0.1.6\lib\net40\DeviceIOControlLib.dll" />
-      <EmbedFiles Include="$(SolutionDir)packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll" />
-    </ItemGroup>
-    <MakeDir Directories="Resources\Embedded" />
-    <Copy SourceFiles="@(EmbedFiles)" DestinationFolder="Resources\Embedded" SkipUnchangedFiles="true" />
-    <ItemGroup>
-      <EmbeddedResource Include="Resources\Embedded\*.dll" />
-    </ItemGroup>
-    <Message Text="SUCCESS: Staged all forensic and system dependencies for Release." Importance="high" />
+    <Message Text="Skipped reflective embedding. Logic is monolithic." Importance="high" />
   </Target>
 </Project>

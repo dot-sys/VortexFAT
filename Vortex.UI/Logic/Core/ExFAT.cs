@@ -31,7 +31,6 @@ namespace Drives.Core
                 string signature = Encoding.ASCII.GetString(sector, 3, 8);
                 if (signature != "EXFAT   ")
                 {
-                    System.Diagnostics.Debug.WriteLine($"Invalid exFAT signature: {signature}");
                     return null;
                 }
 
@@ -56,7 +55,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error reading exFAT boot sector: {ex.Message}");
                 return null;
                 }
             }
@@ -71,7 +69,6 @@ namespace Drives.Core
 
                 visitedClusters.Add(cluster);
 
-                System.Diagnostics.Debug.WriteLine($"Scanning exFAT cluster {cluster} for directory: {dirPath}");
 
                 long clusterOffset = GetClusterOffset(bootSector, cluster);
                 long clusterSize = bootSector.BytesPerSector * bootSector.SectorsPerCluster;
@@ -82,7 +79,6 @@ namespace Drives.Core
 
                 if (bytesRead != clusterSize)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Warning: Only read {bytesRead} of {clusterSize} bytes");
                 }
 
                 List<uint> subdirectoryClusters = new List<uint>();
@@ -111,7 +107,6 @@ namespace Drives.Core
                             if (fileEntry.IsDeleted)
                             {
                                 deletedFiles.Add(fileEntry);
-                                System.Diagnostics.Debug.WriteLine($"Found deleted exFAT file: {fileEntry.ReconstructedFileName} ({fileEntry.FileSizeFormatted})");
                             }
 
                             if (!fileEntry.IsDeleted && fileEntry.IsDirectory && IsValidCluster((uint)fileEntry.StartCluster))
@@ -139,7 +134,6 @@ namespace Drives.Core
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error scanning exFAT cluster {cluster}: {ex.Message}");
                 }
             }
 
@@ -212,10 +206,6 @@ namespace Drives.Core
                 }
 
                 string finalName = fileName.ToString().TrimEnd('\0');
-                if (string.IsNullOrEmpty(finalName))
-                {
-                    finalName = isDirectory ? "[Deleted Directory]" : "[Deleted File]";
-                }
 
                 string basePath = dirPath.EndsWith("\\") ? dirPath : dirPath + "\\";
                 string fullPath = basePath + finalName;
@@ -235,17 +225,13 @@ namespace Drives.Core
                     IsDeleted = isDeleted,
                     IsDirectory = isDirectory,
                     StartCluster = firstCluster,
-                    UseContiguousClusters = noFatChain,
-                    ReconstructionConfidence = CalculateConfidence(finalName, fileSize, creationTime),
-                    ReconstructionSource = "exFAT Directory Entry",
-                    ReconstructionNotes = isDeleted ? "Recovered from exFAT deleted entry" : "Active exFAT entry"
+                    UseContiguousClusters = noFatChain
                 };
 
                 return entry;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error parsing exFAT file entry: {ex.Message}");
                 return null;
                 }
             }
